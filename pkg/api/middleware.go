@@ -48,7 +48,7 @@ func createToken(username string, duration time.Duration) (string, error) {
 
 func verifyToken(tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
+		return []byte(secretKey), nil
 	})
 
 	if err != nil {

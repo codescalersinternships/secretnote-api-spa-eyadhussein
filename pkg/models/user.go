@@ -11,10 +11,11 @@ import (
 // User represents a user model
 type User struct {
 	gorm.Model
-	ID       uint   `gorm:"primaryKey;autoIncrement" json:"id"`
-	Username string `gorm:"size:100;unique;not null" json:"username"`
-	Email    string `gorm:"size:100;unique;not null" json:"email"`
-	Password string `gorm:"size:255;not null" json:"password"`
+	ID       uint    `gorm:"primaryKey;autoIncrement" json:"id"`
+	Username string  `gorm:"size:100;unique;not null" json:"username"`
+	Email    string  `gorm:"size:100;unique;not null" json:"email"`
+	Password string  `gorm:"size:255;not null" json:"password"`
+	Notes    []*Note `gorm:"foreignKey:UserID" json:"notes"`
 }
 
 // NewUser creates a new user

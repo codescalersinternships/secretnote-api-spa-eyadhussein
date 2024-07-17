@@ -81,3 +81,8 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+func (s *Server) handleLogoutUser(c *gin.Context) {
+	c.Set("Authorization", "")
+	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
+}
