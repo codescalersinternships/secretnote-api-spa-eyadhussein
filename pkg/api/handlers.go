@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/models"
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,19 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 		return
 	}
 
-	user := models.NewUser(registerUserRequest.Username, registerUserRequest.Password, registerUserRequest.Email)
+	if err := registerUserRequest.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := models.NewUser(registerUserRequest.Username, registerUserRequest.Email, registerUserRequest.Password)
+
+	err = user.SetPassword(user.Password)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	err = s.store.CreateUser(user)
 
@@ -25,7 +38,14 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, nil)
+
+	token, err := createToken(registerUserRequest.Username, time.Hour*24*7)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"token": token})
 }
 
 func (s *Server) handleLoginUser(c *gin.Context) {
@@ -37,17 +57,27 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 		return
 	}
 
-	user, err := s.store.GetUserByUsername(loginUserRequest.Username)
+	if err := loginUserRequest.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
+	user, err := s.store.GetUserByUsername(loginUserRequest.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if user.Password != loginUserRequest.Password {
+	if err := user.CheckPassword(loginUserRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid password"})
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	token, err := createToken(loginUserRequest.Username, time.Hour*24*7)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

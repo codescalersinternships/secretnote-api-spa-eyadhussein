@@ -12,18 +12,11 @@ type MySQL struct {
 	db *gorm.DB
 }
 
-func NewMySQL() (*MySQL, error) {
-	m := &MySQL{}
-
-	err := m.init()
-
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
+func NewMySQL() *MySQL {
+	return &MySQL{}
 }
 
-func (m *MySQL) init() error {
+func (m *MySQL) Init() error {
 	err := m.connect()
 	if err != nil {
 		return err

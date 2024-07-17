@@ -14,7 +14,9 @@ func main() {
 
 	flag.Parse()
 
-	store, err := storage.NewMySQL()
+	store := storage.NewMySQL()
+
+	err := store.Init()
 
 	if err != nil {
 		log.Fatal(err)

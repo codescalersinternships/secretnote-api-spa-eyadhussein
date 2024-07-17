@@ -34,6 +34,6 @@ func (s *Server) Run() {
 }
 
 func (s *Server) routes() {
-	s.router.POST("/api/users/register", s.handleRegisterUser)
+	s.router.POST("/api/users/register", jwtAuthMiddlware, s.handleRegisterUser)
 	s.router.POST("/api/users/login", s.handleLoginUser)
 }
