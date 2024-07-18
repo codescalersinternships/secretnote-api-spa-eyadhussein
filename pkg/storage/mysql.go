@@ -112,6 +112,19 @@ func (m *MySQL) IncrementNoteViews(id string) error {
 	return nil
 }
 
+// DeleteNoteByID deletes a note by ID
+func (m *MySQL) DeleteNoteByID(id string) error {
+	tx := m.db.Begin()
+	log.Println("Deleting note with ID: ", id)
+	result := tx.Where("id = ?", id).Delete(&models.Note{})
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+	tx.Commit()
+	return nil
+}
+
 func (m *MySQL) connect() error {
 	err := m.ensureDatabaseExists()
 	if err != nil {

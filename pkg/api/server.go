@@ -48,6 +48,6 @@ func (s *Server) routes() {
 	notes := api.Group("/notes")
 	{
 		notes.POST("", jwtAuthMiddleware(s.store), s.handleCreateNote)
-		notes.GET("/:id", jwtAuthMiddleware(s.store), s.handleGetNoteByID)
+		notes.GET("/:id", s.handleGetNoteByID)
 	}
 }

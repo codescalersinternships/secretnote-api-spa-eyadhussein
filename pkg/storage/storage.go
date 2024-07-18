@@ -13,4 +13,5 @@ type Storage interface {
 	GetNoteByID(id string) (*models.Note, error)
 	GetNotesByUserID(userID int) ([]*models.Note, error)
 	IncrementNoteViews(id string) error
+	DeleteNoteByID(id string) error
 }

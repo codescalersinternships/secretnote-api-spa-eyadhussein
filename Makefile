@@ -6,7 +6,7 @@ build:
 	@go build -o $(BIN_DIR)/$(BIN_NAME) $(CMD_PATH)
 
 run: build
-	@./$(BIN_DIR)/$(BIN_NAME) --listen-addr $(PORT)
+	@./$(BIN_DIR)/$(BIN_NAME) $(PORT)
 
 test:
 	@go test -v ./...

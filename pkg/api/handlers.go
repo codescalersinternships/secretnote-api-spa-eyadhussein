@@ -115,6 +115,11 @@ func (s *Server) handleGetNoteByID(c *gin.Context) {
 	}
 
 	if note.IsExpired() || note.HasReachedMaxViews() {
+		if err := s.store.DeleteNoteByID(id); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not delete note"})
+			return
+		}
+
 		c.JSON(http.StatusNotFound, gin.H{"error": "note has expired or reached max views"})
 		return
 	}
