@@ -11,14 +11,17 @@ import (
 	"gorm.io/gorm"
 )
 
+// MySQL is a storage implementation that uses MySQL
 type MySQL struct {
 	db *gorm.DB
 }
 
+// NewMySQL creates a new MySQL storage
 func NewMySQL() *MySQL {
 	return &MySQL{}
 }
 
+// Init initializes the MySQL storage
 func (m *MySQL) Init() error {
 	err := m.connect()
 	if err != nil {
@@ -33,21 +36,80 @@ func (m *MySQL) Init() error {
 	return nil
 }
 
+// CreateUser creates a new user
 func (m *MySQL) CreateUser(user *models.User) error {
-	result := m.db.Create(user)
-	if result.Error != nil {
-		return result.Error
+	tx := m.db.Begin()
+	tx.Create(user)
+	if tx.Error != nil {
+		tx.Rollback()
+		return tx.Error
 	}
+
+	tx.Commit()
 	return nil
 }
 
+// GetUserByUsername gets a user by username
 func (m *MySQL) GetUserByUsername(username string) (*models.User, error) {
-	user := &models.User{}
-	result := m.db.Where("username = ?", username).First(user)
+	var user *models.User
+	result := m.db.Where("username = ?", username).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return user, nil
+}
+
+// CreateNote creates a new note
+func (m *MySQL) CreateNote(note *models.Note) error {
+	tx := m.db.Begin()
+	tx.Create(note)
+	if tx.Error != nil {
+		tx.Rollback()
+		return tx.Error
+	}
+
+	tx.Commit()
+	return nil
+}
+
+// GetNoteByID gets a note by ID
+func (m *MySQL) GetNoteByID(id string) (*models.Note, error) {
+	var note *models.Note
+	result := m.db.Where("id = ?", id).First(&note)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return note, nil
+}
+
+// GetNotesByUserID gets notes by user ID
+func (m *MySQL) GetNotesByUserID(userID int) ([]*models.Note, error) {
+	var notes []*models.Note
+	result := m.db.Where("user_id = ?", userID).Find(&notes)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return notes, nil
+}
+
+// IncrementNoteViews increments the views of a note
+func (m *MySQL) IncrementNoteViews(id string) error {
+	tx := m.db.Begin()
+	var note *models.Note
+	result := tx.Where("id = ?", id).First(&note)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+
+	note.CurrentViews++
+	result = tx.Save(note)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+	tx.Commit()
+	return nil
 }
 
 func (m *MySQL) connect() error {

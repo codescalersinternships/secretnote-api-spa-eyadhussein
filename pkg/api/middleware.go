@@ -1,34 +1,63 @@
 package api
 
 import (
-	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 var secretKey = os.Getenv("JWT_SECRET_KEY")
 
-func jwtAuthMiddlware(c *gin.Context) {
-	tokenString := c.GetHeader("Authorization")
+func jwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing Authorization header"})
+			c.Abort()
+			return
+		}
 
-	if tokenString == "" {
-		c.JSON(401, gin.H{"error": "missing Authorization header"})
-		c.Abort()
-		return
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid Authorization header"})
+			c.Abort()
+			return
+		}
+
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(secretKey), nil
+		})
+
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.Abort()
+			return
+		}
+
+		username, ok := claims["username"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			c.Abort()
+			return
+		}
+
+		user, err := store.GetUserByUsername(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
+
+		c.Next()
 	}
-
-	err := verifyToken(tokenString)
-
-	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
-		c.Abort()
-		return
-	}
-
-	c.Next()
 }
 
 func createToken(username string, duration time.Duration) (string, error) {
@@ -44,20 +73,4 @@ func createToken(username string, duration time.Duration) (string, error) {
 	}
 
 	return tokenString, nil
-}
-
-func verifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
-	}
-
-	return nil
 }

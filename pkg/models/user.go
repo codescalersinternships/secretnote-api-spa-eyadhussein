@@ -1,9 +1,6 @@
 package models
 
 import (
-	"errors"
-	"regexp"
-
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -29,55 +26,16 @@ func NewUser(username, email, password string) *User {
 
 // RegisterUserRequest represents a request to register a user
 type RegisterUserRequest struct {
-	Username             string `json:"username"`
-	Email                string `json:"email"`
-	Password             string `json:"password"`
-	PasswordConfirmation string `json:"password_confirmation"`
+	Username             string `json:"username" binding:"required"`
+	Email                string `json:"email" binding:"required,email"`
+	Password             string `json:"password" binding:"required,min=8"`
+	PasswordConfirmation string `json:"password_confirmation" binding:"required,eqfield=Password"`
 }
 
 // LoginUserRequest represents a request to login a user
 type LoginUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-// Validate checks if the LoginUserRequest is valid
-func (r *LoginUserRequest) Validate() error {
-	if r.Username == "" {
-		return errors.New("username is required")
-	}
-	if r.Password == "" {
-		return errors.New("password is required")
-	}
-	return nil
-}
-
-// Validate validates the RegisterUserRequest fields
-func (r *RegisterUserRequest) Validate() error {
-	if r.Username == "" {
-		return errors.New("username is required")
-	}
-	if r.Email == "" {
-		return errors.New("email is required")
-	}
-	if !isValidEmail(r.Email) {
-		return errors.New("invalid email format")
-	}
-	if r.Password == "" {
-		return errors.New("password is required")
-	}
-	if len(r.Password) < 8 {
-		return errors.New("password must be at least 8 characters long")
-	}
-	if r.Password != r.PasswordConfirmation {
-		return errors.New("password and password confirmation do not match")
-	}
-	return nil
-}
-
-func isValidEmail(email string) bool {
-	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return re.MatchString(email)
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required,min=8"`
 }
 
 // SetPassword hashes the password using bcrypt

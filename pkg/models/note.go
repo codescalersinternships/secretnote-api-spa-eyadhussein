@@ -21,14 +21,21 @@ type Note struct {
 }
 
 // NewNote creates a new note
-func NewNote(title, content string, maxViews int, expiresAt time.Time, userID uint) *Note {
+func NewNote(title, content string, maxViews int, expiresAt time.Time) *Note {
 	return &Note{
 		Title:     title,
 		Content:   content,
 		MaxViews:  maxViews,
 		ExpiresAt: expiresAt,
-		UserID:    userID,
 	}
+}
+
+// CreateNoteRequest represents a request to create a note
+type CreateNoteRequest struct {
+	Title     string    `json:"title" binding:"required,max=255"`
+	Content   string    `json:"content" binding:"required"`
+	MaxViews  int       `json:"max_views" binding:"required"`
+	ExpiresAt time.Time `json:"expires_at" binding:"required"`
 }
 
 // BeforeCreate is a GORM hook that is triggered before a new record is inserted into the database

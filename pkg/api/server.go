@@ -1,3 +1,4 @@
+// Package api contains the server and routes
 package api
 
 import (
@@ -24,7 +25,7 @@ func (s *Server) Run() {
 	s.router.HandleMethodNotAllowed = true
 	s.routes()
 
-	log.Println("Starting server on port 8080...")
+	log.Printf("Starting server on port %s", s.listenAddr)
 
 	err := s.router.Run(s.listenAddr)
 
@@ -34,7 +35,19 @@ func (s *Server) Run() {
 }
 
 func (s *Server) routes() {
-	s.router.POST("/api/users/register", s.handleRegisterUser)
-	s.router.POST("/api/users/login", s.handleLoginUser)
-	s.router.POST("/api/users/logout", jwtAuthMiddlware, s.handleLogoutUser)
+	api := s.router.Group("/api")
+
+	users := api.Group("/users")
+	{
+		users.POST("/register", s.handleRegisterUser)
+		users.POST("/login", s.handleLoginUser)
+		users.POST("/logout", jwtAuthMiddleware(s.store), s.handleLogoutUser)
+		users.GET("/notes", jwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
+	}
+
+	notes := api.Group("/notes")
+	{
+		notes.POST("", jwtAuthMiddleware(s.store), s.handleCreateNote)
+		notes.GET("/:id", jwtAuthMiddleware(s.store), s.handleGetNoteByID)
+	}
 }
