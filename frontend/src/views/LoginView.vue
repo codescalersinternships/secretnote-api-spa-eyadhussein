@@ -15,8 +15,36 @@ export default {
     const router = useRouter()
     const username = ref('')
     const password = ref('')
+    const errors = ref({
+      username: '',
+      password: '',
+      general: ''
+    })
+
+    const validate = () => {
+      let valid = true
+      if (!username.value) {
+        errors.value.username = 'Username is required'
+        valid = false
+      } else {
+        errors.value.username = ''
+      }
+
+      if (!password.value) {
+        errors.value.password = 'Password is required'
+        valid = false
+      } else {
+        errors.value.password = ''
+      }
+
+      return valid
+    }
 
     const login = async () => {
+      if (!validate()) {
+        return
+      }
+
       try {
         await apiClient.post('/auth/login', {
           username: username.value,
@@ -25,6 +53,7 @@ export default {
         router.push('/notes')
       } catch (error) {
         console.error('Error during logging in', error)
+        errors.value.general = 'Invalid username or password'
       }
     }
 
@@ -39,6 +68,7 @@ export default {
     return {
       username,
       password,
+      errors,
       login,
       updateValue
     }
@@ -54,6 +84,7 @@ export default {
           id="username"
           label="Username"
           placeholder="username"
+          :error="errors.username"
           @update-value="updateValue"
         />
 
@@ -62,10 +93,15 @@ export default {
           label="Password"
           type="password"
           placeholder="*******"
+          :error="errors.password"
           @update-value="updateValue"
         />
 
-        <div class="flex items-center justify-between">
+        <div v-if="errors.general" class="text-red-500 text-xs italic mt-2">
+          {{ errors.general }}
+        </div>
+
+        <div class="flex items-center justify-between mt-4">
           <button
             class="bg-blue-600 hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit"

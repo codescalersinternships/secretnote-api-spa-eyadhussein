@@ -6,8 +6,6 @@ import NoteCard from '@/components/NoteCard.vue'
 
 import type Note from '@/types/Note'
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-
 export default {
   name: 'NoteListView',
 
@@ -45,7 +43,6 @@ export default {
 
     return {
       notes,
-      BACKEND_URL,
       handleLogout,
       goToCreateNote
     }
@@ -75,7 +72,7 @@ export default {
         <p class="text-gray-700">You have no notes.</p>
       </div>
       <div v-else class="space-y-4">
-        <NoteCard v-for="note in notes" :key="note.id" :note="note" :backendUrl="BACKEND_URL" />
+        <NoteCard v-for="note in notes" :key="note.id" :note="note" />
       </div>
     </div>
   </div>

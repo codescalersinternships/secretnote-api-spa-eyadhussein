@@ -76,6 +76,7 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 
 func (s *Server) handleLogoutUser(c *gin.Context) {
 	c.SetCookie("token", "", 0, "/", "localhost", false, true)
+	c.SetCookie("user", "", 0, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
 }
 

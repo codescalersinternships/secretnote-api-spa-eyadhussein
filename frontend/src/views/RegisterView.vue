@@ -17,8 +17,58 @@ export default {
     const email = ref('')
     const password = ref('')
     const password_confirmation = ref('')
+    const errors = ref({
+      username: '',
+      email: '',
+      password: '',
+      password_confirmation: '',
+      general: ''
+    })
+
+    const validate = () => {
+      let valid = true
+      if (!username.value) {
+        errors.value.username = 'Username is required'
+        valid = false
+      } else {
+        errors.value.username = ''
+      }
+
+      if (!email.value) {
+        errors.value.email = 'Email is required'
+        valid = false
+      } else if (!/\S+@\S+\.\S+/.test(email.value)) {
+        errors.value.email = 'Email is invalid'
+        valid = false
+      } else {
+        errors.value.email = ''
+      }
+
+      if (!password.value) {
+        errors.value.password = 'Password is required'
+        valid = false
+      } else {
+        errors.value.password = ''
+      }
+
+      if (!password_confirmation.value) {
+        errors.value.password_confirmation = 'Password confirmation is required'
+        valid = false
+      } else if (password_confirmation.value !== password.value) {
+        errors.value.password_confirmation = 'Passwords do not match'
+        valid = false
+      } else {
+        errors.value.password_confirmation = ''
+      }
+
+      return valid
+    }
 
     const register = async () => {
+      if (!validate()) {
+        return
+      }
+
       try {
         await apiClient.post('/auth/register', {
           username: username.value,
@@ -29,6 +79,7 @@ export default {
         router.push('/notes')
       } catch (error) {
         console.error('Error during registration:', error)
+        errors.value.general = 'Registration failed'
       }
     }
 
@@ -49,6 +100,7 @@ export default {
       email,
       password,
       password_confirmation,
+      errors,
       register,
       updateValue
     }
@@ -64,6 +116,7 @@ export default {
           id="username"
           label="Username"
           placeholder="username"
+          :error="errors.username"
           @update-value="updateValue"
         />
 
@@ -71,6 +124,7 @@ export default {
           id="email"
           label="Email"
           placeholder="email@example.com"
+          :error="errors.email"
           @update-value="updateValue"
         />
 
@@ -79,6 +133,7 @@ export default {
           label="Password"
           type="password"
           placeholder="*******"
+          :error="errors.password"
           @update-value="updateValue"
         />
 
@@ -87,10 +142,15 @@ export default {
           label="Confirm Password"
           type="password"
           placeholder="*******"
+          :error="errors.password_confirmation"
           @update-value="updateValue"
         />
 
-        <div class="flex items-center justify-between">
+        <div v-if="errors.general" class="text-red-500 text-xs italic mt-2">
+          {{ errors.general }}
+        </div>
+
+        <div class="flex items-center justify-between mt-4">
           <button
             class="bg-blue-600 hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit"

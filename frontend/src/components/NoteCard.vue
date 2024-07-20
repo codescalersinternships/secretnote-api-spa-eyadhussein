@@ -8,14 +8,10 @@ export default defineComponent({
     note: {
       type: Object as PropType<Note>,
       required: true
-    },
-    backendUrl: {
-      type: String,
-      required: true
     }
   },
-  methods: {
-    formatDate(dateString: string): string {
+  setup() {
+    const formatDate = (dateString: string): string => {
       const date = new Date(dateString)
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -24,6 +20,11 @@ export default defineComponent({
         hour: '2-digit',
         minute: '2-digit'
       })
+    }
+
+    return {
+      formatDate,
+      currentPath: window.location.origin
     }
   }
 })
@@ -46,8 +47,8 @@ export default defineComponent({
       <span class="font-bold">Unique URL:</span>
       <RouterLink
         class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-        :to="`/notes/${note.id}`"
-        >{{ `${backendUrl}/${note.id}` }}</RouterLink
+        :to="`notes/${note.id}`"
+        >{{ `${currentPath}/notes/${note.id}` }}</RouterLink
       >
     </p>
   </div>
