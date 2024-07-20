@@ -39,10 +39,9 @@ func (m *MySQL) Init() error {
 // CreateUser creates a new user
 func (m *MySQL) CreateUser(user *models.User) error {
 	tx := m.db.Begin()
-	tx.Create(user)
-	if tx.Error != nil {
+	if err := tx.Create(user).Error; err != nil {
 		tx.Rollback()
-		return tx.Error
+		return err
 	}
 
 	tx.Commit()

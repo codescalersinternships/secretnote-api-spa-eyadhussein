@@ -1,9 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
@@ -15,34 +15,25 @@ var secretKey = os.Getenv("JWT_SECRET_KEY")
 
 func jwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing Authorization header"})
+		tokenCookie, err := c.Cookie("token")
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
 			c.Abort()
 			return
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == authHeader {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid Authorization header"})
+		err = verifyToken(tokenCookie)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
 
-		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(secretKey), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			c.Abort()
-			return
-		}
-
-		username, ok := claims["username"].(string)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+		username, err := c.Cookie("user")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user cookie"})
 			c.Abort()
 			return
 		}
@@ -55,7 +46,6 @@ func jwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 		}
 
 		c.Set("user", user)
-
 		c.Next()
 	}
 }
@@ -73,4 +63,20 @@ func createToken(username string, duration time.Duration) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func verifyToken(tokenString string) error {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !token.Valid {
+		return fmt.Errorf("invalid token")
+	}
+
+	return nil
 }

@@ -3,8 +3,10 @@ package api
 
 import (
 	"log"
+	"time"
 
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +26,15 @@ func NewServer(listenAddr string, store storage.Storage) *Server {
 func (s *Server) Run() {
 	s.router.HandleMethodNotAllowed = true
 	s.routes()
+	config := cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}
+	s.router.Use(cors.New(config))
 
 	log.Printf("Starting server on port %s", s.listenAddr)
 
@@ -37,13 +48,15 @@ func (s *Server) Run() {
 func (s *Server) routes() {
 	api := s.router.Group("/api")
 
-	users := api.Group("/users")
+	auth := api.Group("/auth")
 	{
-		users.POST("/register", s.handleRegisterUser)
-		users.POST("/login", s.handleLoginUser)
-		users.POST("/logout", jwtAuthMiddleware(s.store), s.handleLogoutUser)
-		users.GET("/notes", jwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
+		auth.POST("/register", s.handleRegisterUser)
+		auth.POST("/login", s.handleLoginUser)
+		auth.POST("/logout", jwtAuthMiddleware(s.store), s.handleLogoutUser)
+		auth.POST("/verify-token", jwtAuthMiddleware(s.store))
 	}
+
+	api.GET("users/notes", jwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
 
 	notes := api.Group("/notes")
 	{

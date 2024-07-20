@@ -37,7 +37,10 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"token": token})
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie("token", token, 604800, "/", "localhost", true, true)
+	c.SetCookie("user", user.Username, 604800, "/", "localhost", false, true)
+	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
 }
 
 func (s *Server) handleLoginUser(c *gin.Context) {
@@ -65,11 +68,14 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie("token", token, 604800, "/", "localhost", false, true)
+	c.SetCookie("user", user.Username, 604800, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "user login successfully"})
 }
 
 func (s *Server) handleLogoutUser(c *gin.Context) {
-	c.Set("Authorization", "")
+	c.SetCookie("token", "", 0, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
 }
 
