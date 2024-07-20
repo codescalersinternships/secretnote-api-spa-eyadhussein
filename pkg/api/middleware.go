@@ -48,6 +48,13 @@ func createToken(username string, duration time.Duration) (string, error) {
 	return tokenString, nil
 }
 
+// @Summary Verify token
+// @Description Verify token
+// @Tags auth
+// @Success 200 {object} swagger.ResponseTokenVerified
+// @Failure 401 {object} swagger.ResponseUnauthorized
+// @Router /auth/verify-token [post]
+// @Security Token
 func verifyToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenCookie, err := c.Cookie("token")

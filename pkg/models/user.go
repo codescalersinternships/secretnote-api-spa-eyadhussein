@@ -25,10 +25,23 @@ func NewUser(username, email, password string) *User {
 }
 
 // RegisterUserRequest represents a request to register a user
+// @Description RegisterUserRequest represents a request to register a user
+// @Model
 type RegisterUserRequest struct {
-	Username             string `json:"username" binding:"required"`
-	Email                string `json:"email" binding:"required,email"`
-	Password             string `json:"password" binding:"required,min=8"`
+	// @Description The username of the user
+	// @Example johndoe
+	Username string `json:"username" binding:"required"`
+
+	// @Description The email address of the user
+	// @Example johndoe@example.com
+	Email string `json:"email" binding:"required,email"`
+
+	// @Description The password for the user
+	// @Example P@ssw0rd!
+	Password string `json:"password" binding:"required,min=8"`
+
+	// @Description Confirmation of the password
+	// @Example P@ssw0rd!
 	PasswordConfirmation string `json:"password_confirmation" binding:"required,eqfield=Password"`
 }
 

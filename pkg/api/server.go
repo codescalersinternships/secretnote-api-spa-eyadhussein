@@ -8,6 +8,9 @@ import (
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Server struct holds the listen address, storage and router
@@ -63,4 +66,6 @@ func (s *Server) routes() {
 		notes.POST("", jwtAuthMiddleware(s.store), s.handleCreateNote)
 		notes.GET("/:id", s.handleGetNoteByID)
 	}
+
+	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }

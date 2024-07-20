@@ -9,6 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Register a new user
+// @Description Register a new user with username, email, and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body models.RegisterUserRequest true "User credentials to register"
+// @Success 201 {object} swagger.ResponseUserRegistered
+// @Failure 400 {object} swagger.ResponseBadRequest
+// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Router /auth/register [post]
 func (s *Server) handleRegisterUser(c *gin.Context) {
 	var registerUserRequest models.RegisterUserRequest
 
@@ -43,6 +53,17 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
 }
 
+// @Summary Login a user
+// @Description Login a user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body models.LoginUserRequest true "User credentials to login"
+// @Success 200 {object} swagger.ResponseUserLoggedIn
+// @Failure 400 {object} swagger.ResponseBadRequest
+// @Failure 401 {object} swagger.ResponseUnauthorized
+// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Router /auth/login [post]
 func (s *Server) handleLoginUser(c *gin.Context) {
 	var loginUserRequest models.LoginUserRequest
 
@@ -74,12 +95,33 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "user login successfully"})
 }
 
+// @Summary Logout a user
+// @Description Logout a user
+// @Tags auth
+// @Produce json
+// @Success 200 {object} swagger.ResponseUserLoggedOut
+// @Failure 401 {object} swagger.ResponseUnauthorized
+// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Router /auth/logout [post]
+// @Security Token
 func (s *Server) handleLogoutUser(c *gin.Context) {
 	c.SetCookie("token", "", 0, "/", "localhost", false, true)
 	c.SetCookie("user", "", 0, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
 }
 
+// @Summary Create a note
+// @Description Create a note with title, content, max views, and expiration date
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param body body models.CreateNoteRequest true "Note details to create"
+// @Success 201 {object} convert.APINote
+// @Failure 400 {object} swagger.ResponseBadRequest
+// @Failure 401 {object} swagger.ResponseUnauthorized
+// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Router /notes [post]
+// @Security Token
 func (s *Server) handleCreateNote(c *gin.Context) {
 	var createNoteRequest models.CreateNoteRequest
 
@@ -108,9 +150,18 @@ func (s *Server) handleCreateNote(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, convert.ToAPINote(note))
+	c.JSON(http.StatusCreated, convert.ToAPINote(note, false))
 }
 
+// @Summary Get a note by ID
+// @Description Get a note by ID
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param id path string true "Note ID"
+// @Success 200 {object} swagger.ResponseNoteRetrievedRestricted
+// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Router /notes/{id} [get]
 func (s *Server) handleGetNoteByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -138,9 +189,18 @@ func (s *Server) handleGetNoteByID(c *gin.Context) {
 
 	note.CurrentViews++
 
-	c.JSON(http.StatusOK, convert.ToAPINote(note))
+	c.JSON(http.StatusOK, convert.ToAPINote(note, true))
 }
 
+// @Summary Get notes by user ID
+// @Description Get notes by user ID
+// @Tags notes
+// @Produce json
+// @Success 200 {object} []convert.APINote
+// @Failure 401 {object} swagger.ResponseUnauthorized
+// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Router /users/notes [get]
+// @Security Token
 func (s *Server) handleGetNotesByUserID(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
@@ -161,5 +221,5 @@ func (s *Server) handleGetNotesByUserID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, notes)
+	c.JSON(http.StatusOK, convert.ToAPINotes(notes, false))
 }
