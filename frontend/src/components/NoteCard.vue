@@ -44,7 +44,7 @@ export default defineComponent({
       <span class="font-bold">Expires At:</span> {{ formatDate(note.expires_at) }}
     </p>
     <p class="text-gray-500 text-sm">
-      <span class="font-bold">Unique URL:</span>
+      <span class="font-bold">Unique URL: </span>
       <RouterLink
         class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
         :to="`notes/${note.id}`"

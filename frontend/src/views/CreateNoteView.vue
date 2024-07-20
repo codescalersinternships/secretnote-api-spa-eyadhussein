@@ -18,8 +18,52 @@ export default {
     const content = ref('')
     const maxViews = ref(1)
     const expiresAt = ref('')
+    const errors = ref({
+      title: '',
+      content: '',
+      maxViews: '',
+      expiresAt: '',
+      general: ''
+    })
+
+    const validate = () => {
+      let valid = true
+      if (!title.value) {
+        errors.value.title = 'Title is required'
+        valid = false
+      } else {
+        errors.value.title = ''
+      }
+
+      if (!content.value) {
+        errors.value.content = 'Content is required'
+        valid = false
+      } else {
+        errors.value.content = ''
+      }
+
+      if (!maxViews.value || maxViews.value < 1) {
+        errors.value.maxViews = 'Max Views must be at least 1'
+        valid = false
+      } else {
+        errors.value.maxViews = ''
+      }
+
+      if (!expiresAt.value) {
+        errors.value.expiresAt = 'Expiration Date is required'
+        valid = false
+      } else {
+        errors.value.expiresAt = ''
+      }
+
+      return valid
+    }
 
     const createNote = async () => {
+      if (!validate()) {
+        return
+      }
+
       try {
         const formattedDate = formatDate(expiresAt.value)
         await apiClient.post('/notes', {
@@ -32,8 +76,10 @@ export default {
       } catch (error) {
         if (error instanceof AxiosError) {
           console.error('Error during creating note', error.response?.data)
+          errors.value.general = error.response?.data.message || 'Error during creating note'
         } else {
           console.error('Error during creating note', error)
+          errors.value.general = 'Error during creating note'
         }
       }
     }
@@ -60,6 +106,7 @@ export default {
       content,
       maxViews,
       expiresAt,
+      errors,
       createNote,
       updateValue
     }
@@ -77,6 +124,7 @@ export default {
           id="title"
           label="Title"
           placeholder="Enter note title"
+          :error="errors.title"
           @update-value="updateValue"
         />
 
@@ -87,6 +135,9 @@ export default {
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             v-model="content"
           ></textarea>
+          <span v-if="errors.content" class="text-red-500 text-xs italic mt-2">{{
+            errors.content
+          }}</span>
         </div>
 
         <FormInput
@@ -94,6 +145,7 @@ export default {
           label="Max Views"
           placeholder="Enter maximum views"
           type="number"
+          :error="errors.maxViews"
           @update-value="updateValue"
         />
 
@@ -102,10 +154,15 @@ export default {
           label="Expiration Date"
           placeholder="Enter expiration date"
           type="date"
+          :error="errors.expiresAt"
           @update-value="updateValue"
         />
 
-        <div class="flex items-center justify-between">
+        <div v-if="errors.general" class="text-red-500 text-xs italic mt-2">
+          {{ errors.general }}
+        </div>
+
+        <div class="flex items-center justify-between mt-4">
           <button
             class="bg-blue-600 hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit"
