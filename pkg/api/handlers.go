@@ -160,5 +160,5 @@ func (s *Server) handleGetNotesByUserID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, convert.ToAPINotes(notes))
+	c.JSON(http.StatusOK, notes)
 }

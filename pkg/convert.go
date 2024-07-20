@@ -24,12 +24,3 @@ func ToAPINote(note *models.Note) *APINote {
 		CurrentViews: note.CurrentViews,
 	}
 }
-
-// ToAPINotes converts a slice of note models to a slice of API notes
-func ToAPINotes(notes []*models.Note) []*APINote {
-	apiNotes := make([]*APINote, 0)
-	for _, note := range notes {
-		apiNotes = append(apiNotes, ToAPINote(note))
-	}
-	return apiNotes
-}

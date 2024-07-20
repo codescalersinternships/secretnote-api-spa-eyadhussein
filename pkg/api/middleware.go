@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -15,22 +14,6 @@ var secretKey = os.Getenv("JWT_SECRET_KEY")
 
 func jwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenCookie, err := c.Cookie("token")
-
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
-			c.Abort()
-			return
-		}
-
-		err = verifyToken(tokenCookie)
-
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-
 		username, err := c.Cookie("user")
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user cookie"})
@@ -65,18 +48,32 @@ func createToken(username string, duration time.Duration) (string, error) {
 	return tokenString, nil
 }
 
-func verifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
+func verifyToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenCookie, err := c.Cookie("token")
 
-	if err != nil {
-		return err
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
+			c.Abort()
+			return
+		}
+
+		token, err := jwt.Parse(tokenCookie, func(token *jwt.Token) (interface{}, error) {
+			return []byte(secretKey), nil
+		})
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		if !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
 	}
-
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
-	}
-
-	return nil
 }

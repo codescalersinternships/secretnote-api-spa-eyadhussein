@@ -1,35 +1,47 @@
 <script lang="ts">
-import { RouterLink } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import apiClient from '@/APIClient'
 import FormInput from '@/components/FormInput.vue'
+
 export default {
   name: 'RegisterView',
-  data() {
-    return {
-      username: '',
-      password: ''
-    }
+
+  components: {
+    FormInput
   },
-  methods: {
-    async login() {
+
+  setup() {
+    const router = useRouter()
+    const username = ref('')
+    const password = ref('')
+
+    const login = async () => {
       try {
         await apiClient.post('/auth/login', {
-          username: this.username,
-          password: this.password
+          username: username.value,
+          password: password.value
         })
+        router.push('/notes')
       } catch (error) {
-        console.error('error during logging in', error)
-      }
-    },
-    updateValue(inputName: string, value: string) {
-      if (inputName in this) {
-        ;(this as any)[inputName] = value
+        console.error('Error during logging in', error)
       }
     }
-  },
-  components: {
-    FormInput,
-    RouterLink
+
+    const updateValue = (inputName: string, value: string) => {
+      if (inputName === 'username') {
+        username.value = value
+      } else if (inputName === 'password') {
+        password.value = value
+      }
+    }
+
+    return {
+      username,
+      password,
+      login,
+      updateValue
+    }
   }
 }
 </script>

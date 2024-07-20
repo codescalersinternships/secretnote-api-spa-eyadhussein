@@ -1,39 +1,57 @@
 <script lang="ts">
-import { RouterLink } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import apiClient from '@/APIClient'
 import FormInput from '@/components/FormInput.vue'
+
 export default {
   name: 'RegisterView',
-  data() {
-    return {
-      username: '',
-      email: '',
-      password: '',
-      password_confirmation: ''
-    }
+
+  components: {
+    FormInput
   },
-  methods: {
-    async register() {
+
+  setup() {
+    const router = useRouter()
+    const username = ref('')
+    const email = ref('')
+    const password = ref('')
+    const password_confirmation = ref('')
+
+    const register = async () => {
       try {
         await apiClient.post('/auth/register', {
-          username: this.username,
-          email: this.email,
-          password: this.password,
-          password_confirmation: this.password_confirmation
+          username: username.value,
+          email: email.value,
+          password: password.value,
+          password_confirmation: password_confirmation.value
         })
+        router.push('/notes')
       } catch (error) {
-        console.error('error during registration', error)
-      }
-    },
-    updateValue(inputName: string, value: string) {
-      if (inputName in this) {
-        ;(this as any)[inputName] = value
+        console.error('Error during registration:', error)
       }
     }
-  },
-  components: {
-    FormInput,
-    RouterLink
+
+    const updateValue = (inputName: string, value: string) => {
+      if (inputName === 'username') {
+        username.value = value
+      } else if (inputName === 'email') {
+        email.value = value
+      } else if (inputName === 'password') {
+        password.value = value
+      } else if (inputName === 'password_confirmation') {
+        password_confirmation.value = value
+      }
+    }
+
+    return {
+      username,
+      email,
+      password,
+      password_confirmation,
+      register,
+      updateValue
+    }
   }
 }
 </script>
@@ -63,13 +81,15 @@ export default {
           placeholder="*******"
           @update-value="updateValue"
         />
+
         <FormInput
           id="password_confirmation"
-          label="Password"
+          label="Confirm Password"
           type="password"
           placeholder="*******"
           @update-value="updateValue"
         />
+
         <div class="flex items-center justify-between">
           <button
             class="bg-blue-600 hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

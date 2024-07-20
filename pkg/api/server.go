@@ -52,8 +52,8 @@ func (s *Server) routes() {
 	{
 		auth.POST("/register", s.handleRegisterUser)
 		auth.POST("/login", s.handleLoginUser)
-		auth.POST("/logout", jwtAuthMiddleware(s.store), s.handleLogoutUser)
-		auth.POST("/verify-token", jwtAuthMiddleware(s.store))
+		auth.POST("/logout", verifyToken(), jwtAuthMiddleware(s.store), s.handleLogoutUser)
+		auth.POST("/verify-token", verifyToken())
 	}
 
 	api.GET("users/notes", jwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
