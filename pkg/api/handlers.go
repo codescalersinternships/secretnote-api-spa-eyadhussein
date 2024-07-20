@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	convert "github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg"
+	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/api/middlewares"
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/models"
+	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,7 +42,7 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 		return
 	}
 
-	token, err := createToken(registerUserRequest.Username, time.Hour*24*7)
+	token, err := middlewares.CreateToken(registerUserRequest.Username, time.Hour*24*7)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -83,7 +84,7 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := createToken(loginUserRequest.Username, time.Hour*24*7)
+	token, err := middlewares.CreateToken(loginUserRequest.Username, time.Hour*24*7)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
@@ -116,7 +117,7 @@ func (s *Server) handleLogoutUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param body body models.CreateNoteRequest true "Note details to create"
-// @Success 201 {object} convert.APINote
+// @Success 201 {object} util.APINote
 // @Failure 400 {object} swagger.ResponseBadRequest
 // @Failure 401 {object} swagger.ResponseUnauthorized
 // @Failure 500 {object} swagger.ResponseInternalServerError
@@ -150,7 +151,7 @@ func (s *Server) handleCreateNote(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, convert.ToAPINote(note, false))
+	c.JSON(http.StatusCreated, util.ToAPINote(note, false))
 }
 
 // @Summary Get a note by ID
@@ -189,14 +190,14 @@ func (s *Server) handleGetNoteByID(c *gin.Context) {
 
 	note.CurrentViews++
 
-	c.JSON(http.StatusOK, convert.ToAPINote(note, true))
+	c.JSON(http.StatusOK, util.ToAPINote(note, true))
 }
 
 // @Summary Get notes by user ID
 // @Description Get notes by user ID
 // @Tags notes
 // @Produce json
-// @Success 200 {object} []convert.APINote
+// @Success 200 {object} []util.APINote
 // @Failure 401 {object} swagger.ResponseUnauthorized
 // @Failure 500 {object} swagger.ResponseInternalServerError
 // @Router /users/notes [get]
@@ -221,5 +222,5 @@ func (s *Server) handleGetNotesByUserID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, convert.ToAPINotes(notes, false))
+	c.JSON(http.StatusOK, util.ToAPINotes(notes, false))
 }

@@ -5,12 +5,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/api/middlewares"
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+)
+
+const (
+	rateLimit = 1
+	burst     = 1
 )
 
 // Server struct holds the listen address, storage and router
@@ -53,18 +59,18 @@ func (s *Server) routes() {
 
 	auth := api.Group("/auth")
 	{
-		auth.POST("/register", s.handleRegisterUser)
-		auth.POST("/login", s.handleLoginUser)
-		auth.POST("/logout", verifyToken(), jwtAuthMiddleware(s.store), s.handleLogoutUser)
-		auth.POST("/verify-token", verifyToken())
+		auth.POST("/register", middlewares.RateLimiter(s.handleRegisterUser, rateLimit, burst))
+		auth.POST("/login", middlewares.RateLimiter(s.handleLoginUser, rateLimit, burst))
+		auth.POST("/logout", middlewares.VerifyToken(), middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleLogoutUser, rateLimit, burst))
+		auth.POST("/verify-token", middlewares.VerifyToken())
 	}
 
-	api.GET("users/notes", jwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
+	api.GET("users/notes", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleGetNotesByUserID, rateLimit, burst))
 
 	notes := api.Group("/notes")
 	{
-		notes.POST("", jwtAuthMiddleware(s.store), s.handleCreateNote)
-		notes.GET("/:id", s.handleGetNoteByID)
+		notes.POST("", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleCreateNote, rateLimit, burst))
+		notes.GET("/:id", middlewares.RateLimiter(s.handleGetNoteByID, rateLimit, burst))
 	}
 
 	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

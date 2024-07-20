@@ -1,4 +1,4 @@
-package convert
+package util
 
 import (
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/models"

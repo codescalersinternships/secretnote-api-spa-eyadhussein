@@ -15,6 +15,7 @@ export default {
 
   setup() {
     const notes = ref<Note[]>([])
+    const err = ref('')
     const router = useRouter()
 
     const fetchNotes = async () => {
@@ -22,7 +23,8 @@ export default {
         const response = await apiClient.get('users/notes')
         notes.value = response.data
       } catch (error) {
-        console.error('Error fetching notes:', error)
+        console.error('Error fetching notes', error)
+        err.value = 'Error fetching notes too many requests'
       }
     }
 
@@ -31,7 +33,8 @@ export default {
         await apiClient.post('auth/logout')
         router.push('/login')
       } catch (error) {
-        console.error('error logging out', error)
+        console.error('Error logging out', error)
+        err.value = 'Error logging out'
       }
     }
 
@@ -43,6 +46,7 @@ export default {
 
     return {
       notes,
+      err,
       handleLogout,
       goToCreateNote
     }
@@ -68,11 +72,21 @@ export default {
         </button>
       </div>
       <h2 class="text-2xl mb-4">Your Notes</h2>
-      <div v-if="notes.length === 0" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <p class="text-gray-700">You have no notes.</p>
+      <div
+        v-if="err"
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+        role="alert"
+      >
+        <span class="block sm:inline">{{ err }}</span>
       </div>
-      <div v-else class="space-y-4">
-        <NoteCard v-for="note in notes" :key="note.id" :note="note" />
+
+      <div v-else>
+        <div v-if="notes.length === 0" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <p class="text-gray-700">You have no notes.</p>
+        </div>
+        <div v-else class="space-y-4">
+          <NoteCard v-for="note in notes" :key="note.id" :note="note" />
+        </div>
       </div>
     </div>
   </div>

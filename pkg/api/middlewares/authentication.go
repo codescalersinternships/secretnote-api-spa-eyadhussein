@@ -1,4 +1,4 @@
-package api
+package middlewares
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ import (
 
 var secretKey = os.Getenv("JWT_SECRET_KEY")
 
-func jwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
+func JwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username, err := c.Cookie("user")
 		if err != nil {
@@ -33,7 +33,7 @@ func jwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 	}
 }
 
-func createToken(username string, duration time.Duration) (string, error) {
+func CreateToken(username string, duration time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"username": username,
@@ -55,7 +55,7 @@ func createToken(username string, duration time.Duration) (string, error) {
 // @Failure 401 {object} swagger.ResponseUnauthorized
 // @Router /auth/verify-token [post]
 // @Security Token
-func verifyToken() gin.HandlerFunc {
+func VerifyToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenCookie, err := c.Cookie("token")
 
