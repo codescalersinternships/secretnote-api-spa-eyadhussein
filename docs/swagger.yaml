@@ -1,22 +1,5 @@
 basePath: /api
 definitions:
-  convert.APINote:
-    properties:
-      content:
-        type: string
-      current_views:
-        type: integer
-      expires_at:
-        type: string
-      id:
-        type: string
-      max_views:
-        type: integer
-      title:
-        type: string
-      user_id:
-        type: integer
-    type: object
   models.CreateNoteRequest:
     properties:
       content:
@@ -87,6 +70,12 @@ definitions:
       error:
         type: string
     type: object
+  swagger.ResponseNotFound:
+    description: Not found
+    properties:
+      error:
+        type: string
+    type: object
   swagger.ResponseNoteRetrievedRestricted:
     description: Note retrieved successfully
     properties:
@@ -127,6 +116,23 @@ definitions:
       message:
         type: string
     type: object
+  util.APINote:
+    properties:
+      content:
+        type: string
+      current_views:
+        type: integer
+      expires_at:
+        type: string
+      id:
+        type: string
+      max_views:
+        type: integer
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
 info:
   contact: {}
   description: This is a sample server for managing notes.
@@ -160,6 +166,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ResponseUnauthorized'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ResponseNotFound'
         "500":
           description: Internal Server Error
           schema:
@@ -255,7 +265,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/convert.APINote'
+            $ref: '#/definitions/util.APINote'
         "400":
           description: Bad Request
           schema:
@@ -264,6 +274,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ResponseUnauthorized'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ResponseNotFound'
         "500":
           description: Internal Server Error
           schema:
@@ -291,6 +305,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/swagger.ResponseNoteRetrievedRestricted'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ResponseNotFound'
         "500":
           description: Internal Server Error
           schema:
@@ -308,12 +326,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/convert.APINote'
+              $ref: '#/definitions/util.APINote'
             type: array
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ResponseUnauthorized'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ResponseNotFound'
         "500":
           description: Internal Server Error
           schema:

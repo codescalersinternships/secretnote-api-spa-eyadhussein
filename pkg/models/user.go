@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -58,6 +60,18 @@ func (u *User) SetPassword(password string) error {
 		return err
 	}
 	u.Password = string(hashedPassword)
+	return nil
+}
+
+func (u *User) MockSetPassword(password string) error {
+	return nil
+}
+
+func (u *User) MockCheckPassword(password string) error {
+	if u.Password != password {
+		return fmt.Errorf("passwords do not match")
+	}
+
 	return nil
 }
 

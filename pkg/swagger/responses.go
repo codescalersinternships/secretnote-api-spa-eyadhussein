@@ -78,3 +78,10 @@ type ResponseNoteNotFound struct {
 type ResponseNoteExpiredOrReachedMaxViews struct {
 	Error string `json:"error"`
 }
+
+// ResponeNotFound indicates that the resource was not found.
+// @Description Not found
+// @Response
+type ResponseNotFound struct {
+	Error string `json:"error"`
+}

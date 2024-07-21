@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
+	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -16,14 +17,18 @@ func JwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username, err := c.Cookie("user")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user cookie"})
+			c.JSON(http.StatusUnauthorized, util.NewResponseError(
+				util.ErrUnauthorized, http.StatusUnauthorized,
+			))
 			c.Abort()
 			return
 		}
 
 		user, err := store.GetUserByUsername(username)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+			c.JSON(http.StatusNotFound, util.NewResponseError(
+				err, http.StatusNotFound,
+			))
 			c.Abort()
 			return
 		}

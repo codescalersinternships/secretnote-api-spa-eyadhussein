@@ -58,6 +58,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ResponseUnauthorized"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ResponseNotFound"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -211,7 +217,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/convert.APINote"
+                            "$ref": "#/definitions/util.APINote"
                         }
                     },
                     "400": {
@@ -224,6 +230,12 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ResponseNotFound"
                         }
                     },
                     "500": {
@@ -264,6 +276,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ResponseNoteRetrievedRestricted"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ResponseNotFound"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -294,7 +312,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/convert.APINote"
+                                "$ref": "#/definitions/util.APINote"
                             }
                         }
                     },
@@ -302,6 +320,12 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ResponseNotFound"
                         }
                     },
                     "500": {
@@ -315,32 +339,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "convert.APINote": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "current_views": {
-                    "type": "integer"
-                },
-                "expires_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "max_views": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "models.CreateNoteRequest": {
             "type": "object",
             "required": [
@@ -428,6 +426,15 @@ const docTemplate = `{
                 }
             }
         },
+        "swagger.ResponseNotFound": {
+            "description": "Not found",
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "swagger.ResponseNoteRetrievedRestricted": {
             "description": "Note retrieved successfully",
             "type": "object",
@@ -485,6 +492,32 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "util.APINote": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "current_views": {
+                    "type": "integer"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "max_views": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         }

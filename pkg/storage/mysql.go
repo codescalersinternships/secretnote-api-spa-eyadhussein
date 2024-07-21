@@ -41,7 +41,7 @@ func (m *MySQL) CreateUser(user *models.User) error {
 	tx := m.db.Begin()
 	if err := tx.Create(user).Error; err != nil {
 		tx.Rollback()
-		return err
+		return fmt.Errorf("failed to create user %w", err)
 	}
 
 	tx.Commit()
@@ -156,8 +156,6 @@ func (m *MySQL) ensureDatabaseExists() error {
 	if err != nil {
 		return err
 	}
-
-	log.Printf("database '%s' is ensured to exist or created.", os.Getenv("DB_NAME"))
 	return nil
 }
 

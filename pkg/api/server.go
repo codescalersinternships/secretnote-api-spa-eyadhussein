@@ -28,6 +28,9 @@ type Server struct {
 
 // NewServer creates a new server
 func NewServer(listenAddr string, store storage.Storage) *Server {
+	if listenAddr == "" {
+		listenAddr = ":8080"
+	}
 	return &Server{listenAddr: listenAddr, store: store, router: gin.Default()}
 }
 
