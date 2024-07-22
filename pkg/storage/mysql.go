@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/models"
 	"gorm.io/driver/mysql"
@@ -200,7 +199,7 @@ func (m *MySQL) ensureDatabaseExists() error {
 	}
 	defer sqlDB.Close()
 
-	_, err = sqlDB.Exec(fmt.Sprintf(sqlStatement, os.Getenv("DB_NAME")))
+	_, err = sqlDB.Exec(fmt.Sprintf(sqlStatement, m.config.dbName))
 	if err != nil {
 		return err
 	}

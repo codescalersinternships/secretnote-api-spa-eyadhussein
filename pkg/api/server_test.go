@@ -16,6 +16,7 @@ import (
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -216,7 +217,7 @@ func TestServer_handleLoginUser(t *testing.T) {
 }
 
 func TestServer_handleLogoutUser(t *testing.T) {
-	s := NewServer("", storage.NewMemory(), "")
+	s := NewServer("", storage.NewMemory(), "", rate.Limit(1), 1)
 	s.router.POST("/api/logout", s.handleLogoutUser)
 
 	t.Run("logout user successfully", func(t *testing.T) {
@@ -242,7 +243,7 @@ func TestServer_handleLogoutUser(t *testing.T) {
 	})
 
 	t.Run("user is not authorized", func(t *testing.T) {
-		s := NewServer("", storage.NewMemory(), "")
+		s := NewServer("", storage.NewMemory(), "", rate.Limit(1), 1)
 
 		s.router.POST("/api/logout", mockVerifyToken(""), s.handleLogoutUser)
 
@@ -256,7 +257,7 @@ func TestServer_handleLogoutUser(t *testing.T) {
 	})
 
 	t.Run("user is authorized", func(t *testing.T) {
-		s := NewServer("", storage.NewMemory(), "")
+		s := NewServer("", storage.NewMemory(), "", rate.Limit(1), 1)
 		_ = s.store.CreateUser(models.NewUser(validRegister.Username, validRegister.Email, validRegister.Password))
 
 		s.router.POST("/api/logout", mockVerifyToken(""), s.handleLogoutUser)
@@ -282,7 +283,7 @@ func TestServer_handleLogoutUser(t *testing.T) {
 
 func TestServer_handleCreateNote(t *testing.T) {
 	store := storage.NewMemory()
-	s := NewServer("", store, "")
+	s := NewServer("", store, "", rate.Limit(1), 1)
 	_ = s.store.CreateUser(models.NewUser(validRegister.Username, validRegister.Email, validRegister.Password))
 	s.router.POST("/api/notes", mockVerifyToken(""), middlewares.JwtAuthMiddleware(s.store), s.handleCreateNote)
 
@@ -328,7 +329,7 @@ func TestServer_handleCreateNote(t *testing.T) {
 
 func TestServer_handleGetNoteByID(t *testing.T) {
 	store := storage.NewMemory()
-	s := NewServer("", store, "")
+	s := NewServer("", store, "", rate.Limit(1), 1)
 	_ = s.store.CreateNote(models.NewNote(validNote1.Title, validNote1.Content, validNote1.MaxViews, validNote1.ExpiresAt))
 
 	s.router.GET("/api/notes/:id", s.handleGetNoteByID)
@@ -420,7 +421,7 @@ func TestServer_handleGetNoteByID(t *testing.T) {
 
 func TestServer_handleGetNotesByUserID(t *testing.T) {
 	store := storage.NewMemory()
-	s := NewServer("", store, "")
+	s := NewServer("", store, "", rate.Limit(1), 1)
 	s.router.GET("/api/users/notes", mockVerifyToken(""), middlewares.JwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
 
 	t.Run("get notes by user id successfully", func(t *testing.T) {

@@ -26,11 +26,11 @@ type Server struct {
 }
 
 // NewServer creates a new server
-func NewServer(listenAddr string, store storage.Storage, secretKey string) *Server {
+func NewServer(listenAddr string, store storage.Storage, secretKey string, rateLimit rate.Limit, burst int) *Server {
 	if listenAddr == "" {
-		listenAddr = ":8080"
+		listenAddr = ":5000"
 	}
-	return &Server{listenAddr: listenAddr, store: store, router: gin.Default(), secretKey: secretKey}
+	return &Server{listenAddr: listenAddr, store: store, router: gin.Default(), secretKey: secretKey, rateLimit: rateLimit, burst: burst}
 }
 
 // Run starts the server
@@ -49,7 +49,7 @@ func (s *Server) Run() {
 
 	log.Printf("Starting server on port %s", s.listenAddr)
 
-	err := s.router.Run(s.listenAddr)
+	err := s.router.Run("0.0.0.0" + s.listenAddr)
 
 	if err != nil {
 		log.Fatalf("failed to start the server %v", err)

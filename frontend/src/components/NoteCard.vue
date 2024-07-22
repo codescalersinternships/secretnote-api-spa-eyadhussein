@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
+import { RouterLink } from 'vue-router'
 import type Note from '@/types/Note'
 
 export default defineComponent({
@@ -47,7 +48,7 @@ export default defineComponent({
       <span class="font-bold">Unique URL: </span>
       <RouterLink
         class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-        :to="`notes/${note.id}`"
+        :to="`/notes/${note.id}`"
         >{{ `${currentPath}/notes/${note.id}` }}</RouterLink
       >
     </p>
