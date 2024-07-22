@@ -10,6 +10,9 @@ var (
 	ErrBadRequest     = errors.New("bad request")
 	ErrUnauthorized   = errors.New("unauthorized")
 	ErrNotFound       = errors.New("not found")
+
+	ErrMaxViewsLessThanOne = errors.New("max views has to be at least 1")
+	ErrExpiresAtBeforeNow  = errors.New("expiration date has to be in the future")
 )
 
 // ResponseError struct holds the error message and status code

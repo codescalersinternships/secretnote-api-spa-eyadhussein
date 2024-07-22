@@ -129,8 +129,16 @@ func (s *Server) handleCreateNote(c *gin.Context) {
 	var createNoteRequest models.CreateNoteRequest
 
 	if err := c.ShouldBindJSON(&createNoteRequest); err != nil {
+		if createNoteRequest.MaxViews < 1 {
+			c.JSON(http.StatusBadRequest, util.NewResponseError(util.ErrMaxViewsLessThanOne, http.StatusBadRequest))
+			return
+		}
 		c.JSON(http.StatusBadRequest, util.NewResponseError(util.ErrBadRequest, http.StatusBadRequest))
 		return
+	}
+
+	if createNoteRequest.ExpiresAt.Before(time.Now()) {
+		c.JSON(http.StatusBadRequest, util.NewResponseError(util.ErrExpiresAtBeforeNow, http.StatusBadRequest))
 	}
 
 	user, exists := c.Get("user")
@@ -170,7 +178,6 @@ func (s *Server) handleGetNoteByID(c *gin.Context) {
 	id := c.Param("id")
 
 	note, err := s.store.GetNoteByID(id)
-
 	if err != nil {
 		c.JSON(http.StatusNotFound, util.NewResponseError(err, http.StatusNotFound))
 		return
@@ -178,11 +185,10 @@ func (s *Server) handleGetNoteByID(c *gin.Context) {
 
 	if note.IsExpired() || note.HasReachedMaxViews() {
 		if err := s.store.DeleteNoteByID(id); err != nil {
-			c.JSON(http.StatusInternalServerError, util.NewResponseError(err, http.StatusInternalServerError))
+			c.JSON(http.StatusNotFound, util.NewResponseError(err, http.StatusNotFound))
 			return
 		}
-
-		c.JSON(http.StatusNotFound, util.NewResponseError(err, http.StatusNotFound))
+		c.JSON(http.StatusNotFound, util.NewResponseError(util.ErrNotFound, http.StatusNotFound))
 		return
 	}
 
@@ -219,7 +225,7 @@ func (s *Server) handleGetNotesByUserID(c *gin.Context) {
 		return
 	}
 
-	notes, err := s.store.GetNotesByUserID(int(authUser.ID))
+	notes, err := s.store.GetNotesByUserID(authUser.ID)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, util.NewResponseError(err, http.StatusNotFound))

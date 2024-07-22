@@ -11,8 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = os.Getenv("JWT_SECRET_KEY")
-
 func JwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username, err := c.Cookie("user")
@@ -23,7 +21,6 @@ func JwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
 		user, err := store.GetUserByUsername(username)
 		if err != nil {
 			c.JSON(http.StatusNotFound, util.NewResponseError(
@@ -39,6 +36,8 @@ func JwtAuthMiddleware(store storage.Storage) gin.HandlerFunc {
 }
 
 func CreateToken(username string, duration time.Duration) (string, error) {
+	var secretKey = os.Getenv("JWT_SECRET_KEY")
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"username": username,
@@ -60,32 +59,32 @@ func CreateToken(username string, duration time.Duration) (string, error) {
 // @Failure 401 {object} swagger.ResponseUnauthorized
 // @Router /auth/verify-token [post]
 // @Security Token
-func VerifyToken() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenCookie, err := c.Cookie("token")
+func VerifyToken(c *gin.Context) {
+	tokenCookie, err := c.Cookie("token")
 
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
-			c.Abort()
-			return
-		}
-
-		token, err := jwt.Parse(tokenCookie, func(token *jwt.Token) (interface{}, error) {
-			return []byte(secretKey), nil
-		})
-
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-
-		if !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			c.Abort()
-			return
-		}
-
-		c.Next()
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
+		c.Abort()
+		return
 	}
+
+	var secretKey = os.Getenv("JWT_SECRET_KEY")
+
+	token, err := jwt.Parse(tokenCookie, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.Abort()
+		return
+	}
+
+	if !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		c.Abort()
+		return
+	}
+
+	c.Next()
 }

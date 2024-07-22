@@ -64,8 +64,8 @@ func (s *Server) routes() {
 	{
 		auth.POST("/register", middlewares.RateLimiter(s.handleRegisterUser, rateLimit, burst))
 		auth.POST("/login", middlewares.RateLimiter(s.handleLoginUser, rateLimit, burst))
-		auth.POST("/logout", middlewares.VerifyToken(), middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleLogoutUser, rateLimit, burst))
-		auth.POST("/verify-token", middlewares.VerifyToken())
+		auth.POST("/logout", middlewares.VerifyToken, middlewares.RateLimiter(s.handleLogoutUser, rateLimit, burst))
+		auth.POST("/verify-token", middlewares.VerifyToken)
 	}
 
 	api.GET("users/notes", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleGetNotesByUserID, rateLimit, burst))

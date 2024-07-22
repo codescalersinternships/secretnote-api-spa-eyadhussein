@@ -11,7 +11,8 @@ type Storage interface {
 	GetUserByUsername(username string) (*models.User, error)
 	CreateNote(note *models.Note) error
 	GetNoteByID(id string) (*models.Note, error)
-	GetNotesByUserID(userID int) ([]*models.Note, error)
+	GetNotesByUserID(userID uint) ([]*models.Note, error)
 	IncrementNoteViews(id string) error
 	DeleteNoteByID(id string) error
+	Clear() error
 }

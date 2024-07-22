@@ -47,10 +47,37 @@ type RegisterUserRequest struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required,eqfield=Password"`
 }
 
+func NewRegisterUserRequest(username, email, password, passwordConfirmation string) *RegisterUserRequest {
+	return &RegisterUserRequest{
+		Username:             username,
+		Email:                email,
+		Password:             password,
+		PasswordConfirmation: passwordConfirmation,
+	}
+}
+
+// String returns the string representation of the RegisterUserRequest
+func (r *RegisterUserRequest) String() string {
+	return fmt.Sprintf(`{"username":"%s", "email":"%s", "password":"%s", "password_confirmation":"%s"}`, r.Username, r.Email, r.Password, r.PasswordConfirmation)
+}
+
 // LoginUserRequest represents a request to login a user
 type LoginUserRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required,min=8"`
+}
+
+// NewLoginUserRequest creates a new LoginUserRequest
+func NewLoginUserRequest(username, password string) *LoginUserRequest {
+	return &LoginUserRequest{
+		Username: username,
+		Password: password,
+	}
+}
+
+// String returns the string representation of the LoginUserRequest
+func (r *LoginUserRequest) String() string {
+	return fmt.Sprintf(`{"username":"%s","password":"%s"}`, r.Username, r.Password)
 }
 
 // SetPassword hashes the password using bcrypt

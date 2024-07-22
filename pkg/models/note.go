@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,6 +37,22 @@ type CreateNoteRequest struct {
 	Content   string    `json:"content" binding:"required"`
 	MaxViews  int       `json:"max_views" binding:"required"`
 	ExpiresAt time.Time `json:"expires_at" binding:"required"`
+}
+
+// NewCreateNoteRequest creates a new CreateNoteRequest
+func NewCreateNoteRequest(title, content string, maxViews int, expiresAt time.Time) *CreateNoteRequest {
+	return &CreateNoteRequest{
+		Title:     title,
+		Content:   content,
+		MaxViews:  maxViews,
+		ExpiresAt: expiresAt,
+	}
+}
+
+// String returns the string representation of the CreateNoteRequest
+func (r *CreateNoteRequest) String() string {
+	date := r.ExpiresAt.Format(time.RFC3339)
+	return fmt.Sprintf(`{"title":"%s","content":"%s", "expires_at":"%s", "max_views":%d}`, r.Title, r.Content, date, r.MaxViews)
 }
 
 // BeforeCreate is a GORM hook that is triggered before a new record is inserted into the database

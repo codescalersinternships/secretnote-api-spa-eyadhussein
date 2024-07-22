@@ -82,7 +82,7 @@ func (m *MySQL) GetNoteByID(id string) (*models.Note, error) {
 }
 
 // GetNotesByUserID gets notes by user ID
-func (m *MySQL) GetNotesByUserID(userID int) ([]*models.Note, error) {
+func (m *MySQL) GetNotesByUserID(userID uint) ([]*models.Note, error) {
 	var notes []*models.Note
 	result := m.db.Where("user_id = ?", userID).Find(&notes)
 	if result.Error != nil {
@@ -119,6 +119,23 @@ func (m *MySQL) DeleteNoteByID(id string) error {
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error
+	}
+	tx.Commit()
+	return nil
+}
+
+// Clear clears the database
+func (m *MySQL) Clear() error {
+	tx := m.db.Begin()
+	tx.Exec("DROP DATABASE " + os.Getenv("DB_NAME"))
+	if tx.Error != nil {
+		tx.Rollback()
+		return tx.Error
+	}
+	tx.Exec("CREATE DATABASE " + os.Getenv("DB_NAME"))
+	if tx.Error != nil {
+		tx.Rollback()
+		return tx.Error
 	}
 	tx.Commit()
 	return nil
