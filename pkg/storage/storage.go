@@ -1,4 +1,4 @@
-// Storage package defines the Storage interface that defines the methods that a storage implementation must have.
+// Package storage contains the storage implementations used in the server.
 package storage
 
 import (

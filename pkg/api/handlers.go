@@ -10,15 +10,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Description User registered successfully
+// @Response
+type SuccessResponse struct {
+	Message string `json:"message" example:"user registered successfully"`
+}
+
 // @Summary Register a new user
 // @Description Register a new user with username, email, and password
 // @Tags auth
 // @Accept json
 // @Produce json
 // @Param body body models.RegisterUserRequest true "User credentials to register"
-// @Success 201 {object} swagger.ResponseUserRegistered
-// @Failure 400 {object} swagger.ResponseBadRequest
-// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Success 201 {object} SuccessResponse
+// @Failure 400 {object} util.ResponseError "Bad request"
+// @Failure 500 {object} util.ResponseError "Internal server error"
 // @Router /auth/register [post]
 func (s *Server) handleRegisterUser(c *gin.Context) {
 	var registerUserRequest models.RegisterUserRequest
@@ -42,7 +48,7 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 		return
 	}
 
-	token, err := middlewares.CreateToken(registerUserRequest.Username, time.Hour*24*7)
+	token, err := middlewares.CreateToken(registerUserRequest.Username, time.Hour*24*7, s.secretKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.NewResponseError(err, http.StatusInternalServerError))
 		return
@@ -51,7 +57,7 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("token", token, 604800, "/", "localhost", true, true)
 	c.SetCookie("user", user.Username, 604800, "/", "localhost", false, true)
-	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
+	c.JSON(http.StatusCreated, SuccessResponse{Message: "user registered successfully"})
 }
 
 // @Summary Login a user
@@ -60,11 +66,11 @@ func (s *Server) handleRegisterUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param body body models.LoginUserRequest true "User credentials to login"
-// @Success 200 {object} swagger.ResponseUserLoggedIn
-// @Failure 400 {object} swagger.ResponseBadRequest
-// @Failure 401 {object} swagger.ResponseUnauthorized
-// @Failure 404 {object} swagger.ResponseNotFound
-// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Success 200 {object} SuccessResponse "User login successfully"
+// @Failure 400 {object} util.ResponseError "Bad request"
+// @Failure 401 {object} util.ResponseError "Unauthorized"
+// @Failure 404 {object} util.ResponseError "Not found"
+// @Failure 500 {object} util.ResponseError "Internal server error"
 // @Router /auth/login [post]
 func (s *Server) handleLoginUser(c *gin.Context) {
 	var loginUserRequest models.LoginUserRequest
@@ -85,7 +91,7 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := middlewares.CreateToken(loginUserRequest.Username, time.Hour*24*7)
+	token, err := middlewares.CreateToken(loginUserRequest.Username, time.Hour*24*7, s.secretKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.NewResponseError(err, http.StatusInternalServerError))
 		return
@@ -94,22 +100,22 @@ func (s *Server) handleLoginUser(c *gin.Context) {
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("token", token, 604800, "/", "localhost", false, true)
 	c.SetCookie("user", user.Username, 604800, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"message": "user login successfully"})
+	c.JSON(http.StatusOK, SuccessResponse{Message: "user login successfully"})
 }
 
 // @Summary Logout a user
 // @Description Logout a user
 // @Tags auth
 // @Produce json
-// @Success 200 {object} swagger.ResponseUserLoggedOut
-// @Failure 401 {object} swagger.ResponseUnauthorized
-// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Success 200 {object} SuccessResponse "User logout successfully"
+// @Failure 401 {object} util.ResponseError "Unauthorized"
+// @Failure 500 {object} util.ResponseError "Internal server error"
 // @Router /auth/logout [post]
 // @Security Token
 func (s *Server) handleLogoutUser(c *gin.Context) {
 	c.SetCookie("token", "", 0, "/", "localhost", false, true)
 	c.SetCookie("user", "", 0, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
+	c.JSON(http.StatusOK, SuccessResponse{Message: "user logout successfully"})
 }
 
 // @Summary Create a note
@@ -119,10 +125,10 @@ func (s *Server) handleLogoutUser(c *gin.Context) {
 // @Produce json
 // @Param body body models.CreateNoteRequest true "Note details to create"
 // @Success 201 {object} util.APINote
-// @Failure 400 {object} swagger.ResponseBadRequest
-// @Failure 401 {object} swagger.ResponseUnauthorized
-// @Failure 404 {object} swagger.ResponseNotFound
-// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Failure 400 {object} util.ResponseError "Bad request"
+// @Failure 401 {object} util.ResponseError "Unauthorized"
+// @Failure 404 {object} util.ResponseError "Not found"
+// @Failure 500 {object} util.ResponseError "Internal server error"
 // @Router /notes [post]
 // @Security Token
 func (s *Server) handleCreateNote(c *gin.Context) {
@@ -170,9 +176,9 @@ func (s *Server) handleCreateNote(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Note ID"
-// @Success 200 {object} swagger.ResponseNoteRetrievedRestricted
-// @Failure 404 {object} swagger.ResponseNotFound
-// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Success 200 {object} util.APINote
+// @Failure 404 {object} util.ResponseError "Not found"
+// @Failure 500 {object} util.ResponseError "Internal server error"
 // @Router /notes/{id} [get]
 func (s *Server) handleGetNoteByID(c *gin.Context) {
 	id := c.Param("id")
@@ -207,9 +213,9 @@ func (s *Server) handleGetNoteByID(c *gin.Context) {
 // @Tags notes
 // @Produce json
 // @Success 200 {object} []util.APINote
-// @Failure 401 {object} swagger.ResponseUnauthorized
-// @Failure 404 {object} swagger.ResponseNotFound
-// @Failure 500 {object} swagger.ResponseInternalServerError
+// @Failure 401 {object} util.ResponseError "Unauthorized"
+// @Failure 404 {object} util.ResponseError "Not found"
+// @Failure 500 {object} util.ResponseError "Internal server error"
 // @Router /users/notes [get]
 // @Security Token
 func (s *Server) handleGetNotesByUserID(c *gin.Context) {

@@ -41,33 +41,33 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "User login successfully",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUserLoggedIn"
+                            "$ref": "#/definitions/api.SuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseBadRequest"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseNotFound"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseInternalServerError"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -90,21 +90,21 @@ const docTemplate = `{
                 "summary": "Logout a user",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "User logout successfully",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUserLoggedOut"
+                            "$ref": "#/definitions/api.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseInternalServerError"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -138,19 +138,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUserRegistered"
+                            "$ref": "#/definitions/api.SuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseBadRequest"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseInternalServerError"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -172,13 +172,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseTokenVerified"
+                            "$ref": "#/definitions/api.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -221,27 +221,27 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseBadRequest"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseNotFound"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseInternalServerError"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -273,19 +273,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseNoteRetrievedRestricted"
+                            "$ref": "#/definitions/util.APINote"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseNotFound"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseInternalServerError"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -319,19 +319,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseUnauthorized"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseNotFound"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ResponseInternalServerError"
+                            "$ref": "#/definitions/util.ResponseError"
                         }
                     }
                 }
@@ -339,6 +339,15 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.SuccessResponse": {
+            "description": "User registered successfully",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "models.CreateNoteRequest": {
             "type": "object",
             "required": [
@@ -408,93 +417,6 @@ const docTemplate = `{
                 }
             }
         },
-        "swagger.ResponseBadRequest": {
-            "description": "Bad request",
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseInternalServerError": {
-            "description": "Internal server error",
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseNotFound": {
-            "description": "Not found",
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseNoteRetrievedRestricted": {
-            "description": "Note retrieved successfully",
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseTokenVerified": {
-            "description": "Token valid",
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseUnauthorized": {
-            "description": "Unauthorized",
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseUserLoggedIn": {
-            "description": "User logged in successfully",
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseUserLoggedOut": {
-            "description": "User logged out successfully",
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "swagger.ResponseUserRegistered": {
-            "description": "User registered successfully",
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
         "util.APINote": {
             "type": "object",
             "properties": {
@@ -518,6 +440,20 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "util.ResponseError": {
+            "description": "General error response",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "An error occurred"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 500
                 }
             }
         }

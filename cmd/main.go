@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	_ "github.com/codescalersinternships/secretnote-api-spa-eyadhussein/docs"
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/api"
@@ -22,7 +23,17 @@ func main() {
 
 	flag.Parse()
 
-	store := storage.NewMySQL()
+	dbConfig := storage.NewConfig(
+		os.Getenv("DB_USERNAME"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+	)
+
+	store := storage.NewMySQL(
+		dbConfig,
+	)
 
 	err := store.Init()
 
@@ -30,7 +41,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := api.NewServer(listenAddr, store)
+	secretKey := os.Getenv("JWT_SECRET_KEY")
+	server := api.NewServer(listenAddr, store, secretKey)
 
 	server.Run()
 }

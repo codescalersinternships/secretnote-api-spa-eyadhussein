@@ -1,3 +1,4 @@
+// Package models contains the models used in the server.
 package models
 
 import (

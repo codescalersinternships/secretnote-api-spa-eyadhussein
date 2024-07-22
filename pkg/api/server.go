@@ -9,14 +9,10 @@ import (
 	"github.com/codescalersinternships/secretnote-api-spa-eyadhussein/pkg/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-)
-
-const (
-	rateLimit = 1
-	burst     = 1
 )
 
 // Server struct holds the listen address, storage and router
@@ -24,14 +20,17 @@ type Server struct {
 	listenAddr string
 	store      storage.Storage
 	router     *gin.Engine
+	secretKey  string
+	rateLimit  rate.Limit
+	burst      int
 }
 
 // NewServer creates a new server
-func NewServer(listenAddr string, store storage.Storage) *Server {
+func NewServer(listenAddr string, store storage.Storage, secretKey string) *Server {
 	if listenAddr == "" {
 		listenAddr = ":8080"
 	}
-	return &Server{listenAddr: listenAddr, store: store, router: gin.Default()}
+	return &Server{listenAddr: listenAddr, store: store, router: gin.Default(), secretKey: secretKey}
 }
 
 // Run starts the server
@@ -62,18 +61,18 @@ func (s *Server) routes() {
 
 	auth := api.Group("/auth")
 	{
-		auth.POST("/register", middlewares.RateLimiter(s.handleRegisterUser, rateLimit, burst))
-		auth.POST("/login", middlewares.RateLimiter(s.handleLoginUser, rateLimit, burst))
-		auth.POST("/logout", middlewares.VerifyToken, middlewares.RateLimiter(s.handleLogoutUser, rateLimit, burst))
-		auth.POST("/verify-token", middlewares.VerifyToken)
+		auth.POST("/register", middlewares.RateLimiter(s.handleRegisterUser, s.rateLimit, s.burst))
+		auth.POST("/login", middlewares.RateLimiter(s.handleLoginUser, s.rateLimit, s.burst))
+		auth.POST("/logout", middlewares.VerifyToken(s.secretKey), middlewares.RateLimiter(s.handleLogoutUser, s.rateLimit, s.burst))
+		auth.POST("/verify-token", middlewares.VerifyToken(s.secretKey))
 	}
 
-	api.GET("users/notes", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleGetNotesByUserID, rateLimit, burst))
+	api.GET("users/notes", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleGetNotesByUserID, s.rateLimit, s.burst))
 
 	notes := api.Group("/notes")
 	{
-		notes.POST("", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleCreateNote, rateLimit, burst))
-		notes.GET("/:id", middlewares.RateLimiter(s.handleGetNoteByID, rateLimit, burst))
+		notes.POST("", middlewares.JwtAuthMiddleware(s.store), middlewares.RateLimiter(s.handleCreateNote, s.rateLimit, s.burst))
+		notes.GET("/:id", middlewares.RateLimiter(s.handleGetNoteByID, s.rateLimit, s.burst))
 	}
 
 	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

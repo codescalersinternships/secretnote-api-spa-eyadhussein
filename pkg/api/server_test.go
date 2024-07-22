@@ -55,26 +55,28 @@ func NewMockServer(store storage.Storage) *MockServer {
 	return &MockServer{store: store, router: gin.Default()}
 }
 
-func mockCreateToken(username string, duration time.Duration) (string, error) {
+func mockCreateToken(username string, duration time.Duration, secretKey string) (string, error) {
 	return "token", nil
 }
 
-func mockVerifyToken(c *gin.Context) {
-	tokenCookie, err := c.Cookie("token")
+func mockVerifyToken(secretKey string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenCookie, err := c.Cookie("token")
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
-		c.Abort()
-		return
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token cookie"})
+			c.Abort()
+			return
+		}
+
+		if tokenCookie != "token" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
 	}
-
-	if tokenCookie != "token" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-		c.Abort()
-		return
-	}
-
-	c.Next()
 }
 
 func (s *MockServer) handleRegisterUser(c *gin.Context) {
@@ -99,7 +101,7 @@ func (s *MockServer) handleRegisterUser(c *gin.Context) {
 		return
 	}
 
-	token, _ := mockCreateToken(registerUserRequest.Username, time.Hour*24*7)
+	token, _ := mockCreateToken(registerUserRequest.Username, time.Hour*24*7, "")
 
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("token", token, 604800, "/", "localhost", true, true)
@@ -126,7 +128,7 @@ func (s *MockServer) handleLoginUser(c *gin.Context) {
 		return
 	}
 
-	token, _ := mockCreateToken(loginUserRequest.Username, time.Hour*24*7)
+	token, _ := mockCreateToken(loginUserRequest.Username, time.Hour*24*7, "")
 
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("token", token, 604800, "/", "localhost", false, true)
@@ -214,7 +216,7 @@ func TestServer_handleLoginUser(t *testing.T) {
 }
 
 func TestServer_handleLogoutUser(t *testing.T) {
-	s := NewServer("", storage.NewMemory())
+	s := NewServer("", storage.NewMemory(), "")
 	s.router.POST("/api/logout", s.handleLogoutUser)
 
 	t.Run("logout user successfully", func(t *testing.T) {
@@ -240,9 +242,9 @@ func TestServer_handleLogoutUser(t *testing.T) {
 	})
 
 	t.Run("user is not authorized", func(t *testing.T) {
-		s := NewServer("", storage.NewMemory())
+		s := NewServer("", storage.NewMemory(), "")
 
-		s.router.POST("/api/logout", mockVerifyToken, s.handleLogoutUser)
+		s.router.POST("/api/logout", mockVerifyToken(""), s.handleLogoutUser)
 
 		req, err := createRequest("POST", "/api/logout", "")
 		assertNoError(t, err)
@@ -254,10 +256,10 @@ func TestServer_handleLogoutUser(t *testing.T) {
 	})
 
 	t.Run("user is authorized", func(t *testing.T) {
-		s := NewServer("", storage.NewMemory())
+		s := NewServer("", storage.NewMemory(), "")
 		_ = s.store.CreateUser(models.NewUser(validRegister.Username, validRegister.Email, validRegister.Password))
 
-		s.router.POST("/api/logout", mockVerifyToken, s.handleLogoutUser)
+		s.router.POST("/api/logout", mockVerifyToken(""), s.handleLogoutUser)
 
 		req, err := createRequest("POST", "/api/logout", "")
 		assertNoError(t, err)
@@ -280,9 +282,9 @@ func TestServer_handleLogoutUser(t *testing.T) {
 
 func TestServer_handleCreateNote(t *testing.T) {
 	store := storage.NewMemory()
-	s := NewServer("", store)
+	s := NewServer("", store, "")
 	_ = s.store.CreateUser(models.NewUser(validRegister.Username, validRegister.Email, validRegister.Password))
-	s.router.POST("/api/notes", mockVerifyToken, middlewares.JwtAuthMiddleware(s.store), s.handleCreateNote)
+	s.router.POST("/api/notes", mockVerifyToken(""), middlewares.JwtAuthMiddleware(s.store), s.handleCreateNote)
 
 	noteTests := []struct {
 		name           string
@@ -326,7 +328,7 @@ func TestServer_handleCreateNote(t *testing.T) {
 
 func TestServer_handleGetNoteByID(t *testing.T) {
 	store := storage.NewMemory()
-	s := NewServer("", store)
+	s := NewServer("", store, "")
 	_ = s.store.CreateNote(models.NewNote(validNote1.Title, validNote1.Content, validNote1.MaxViews, validNote1.ExpiresAt))
 
 	s.router.GET("/api/notes/:id", s.handleGetNoteByID)
@@ -418,8 +420,8 @@ func TestServer_handleGetNoteByID(t *testing.T) {
 
 func TestServer_handleGetNotesByUserID(t *testing.T) {
 	store := storage.NewMemory()
-	s := NewServer("", store)
-	s.router.GET("/api/users/notes", mockVerifyToken, middlewares.JwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
+	s := NewServer("", store, "")
+	s.router.GET("/api/users/notes", mockVerifyToken(""), middlewares.JwtAuthMiddleware(s.store), s.handleGetNotesByUserID)
 
 	t.Run("get notes by user id successfully", func(t *testing.T) {
 		_ = s.store.CreateUser(models.NewUser(validRegister.Username, validRegister.Email, validRegister.Password))

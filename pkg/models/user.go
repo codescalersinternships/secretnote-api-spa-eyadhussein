@@ -47,6 +47,7 @@ type RegisterUserRequest struct {
 	PasswordConfirmation string `json:"password_confirmation" binding:"required,eqfield=Password"`
 }
 
+// NewRegisterUserRequest creates a new RegisterUserRequest
 func NewRegisterUserRequest(username, email, password, passwordConfirmation string) *RegisterUserRequest {
 	return &RegisterUserRequest{
 		Username:             username,
@@ -90,6 +91,11 @@ func (u *User) SetPassword(password string) error {
 	return nil
 }
 
+// CheckPassword checks if the provided password matches the stored hashed password
+func (u *User) CheckPassword(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+}
+
 func (u *User) MockSetPassword(password string) error {
 	return nil
 }
@@ -100,9 +106,4 @@ func (u *User) MockCheckPassword(password string) error {
 	}
 
 	return nil
-}
-
-// CheckPassword checks if the provided password matches the stored hashed password
-func (u *User) CheckPassword(password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 }

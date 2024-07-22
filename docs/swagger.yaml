@@ -1,5 +1,11 @@
 basePath: /api
 definitions:
+  api.SuccessResponse:
+    description: User registered successfully
+    properties:
+      message:
+        type: string
+    type: object
   models.CreateNoteRequest:
     properties:
       content:
@@ -58,64 +64,6 @@ definitions:
     - password_confirmation
     - username
     type: object
-  swagger.ResponseBadRequest:
-    description: Bad request
-    properties:
-      error:
-        type: string
-    type: object
-  swagger.ResponseInternalServerError:
-    description: Internal server error
-    properties:
-      error:
-        type: string
-    type: object
-  swagger.ResponseNotFound:
-    description: Not found
-    properties:
-      error:
-        type: string
-    type: object
-  swagger.ResponseNoteRetrievedRestricted:
-    description: Note retrieved successfully
-    properties:
-      content:
-        type: string
-      id:
-        type: string
-      title:
-        type: string
-    type: object
-  swagger.ResponseTokenVerified:
-    description: Token valid
-    properties:
-      message:
-        type: string
-    type: object
-  swagger.ResponseUnauthorized:
-    description: Unauthorized
-    properties:
-      error:
-        type: string
-    type: object
-  swagger.ResponseUserLoggedIn:
-    description: User logged in successfully
-    properties:
-      message:
-        type: string
-    type: object
-  swagger.ResponseUserLoggedOut:
-    description: User logged out successfully
-    properties:
-      message:
-        type: string
-    type: object
-  swagger.ResponseUserRegistered:
-    description: User registered successfully
-    properties:
-      message:
-        type: string
-    type: object
   util.APINote:
     properties:
       content:
@@ -131,6 +79,16 @@ definitions:
       title:
         type: string
       user_id:
+        type: integer
+    type: object
+  util.ResponseError:
+    description: General error response
+    properties:
+      message:
+        example: An error occurred
+        type: string
+      status:
+        example: 500
         type: integer
     type: object
 info:
@@ -155,25 +113,25 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: User login successfully
           schema:
-            $ref: '#/definitions/swagger.ResponseUserLoggedIn'
+            $ref: '#/definitions/api.SuccessResponse'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/swagger.ResponseBadRequest'
+            $ref: '#/definitions/util.ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/swagger.ResponseUnauthorized'
+            $ref: '#/definitions/util.ResponseError'
         "404":
-          description: Not Found
+          description: Not found
           schema:
-            $ref: '#/definitions/swagger.ResponseNotFound'
+            $ref: '#/definitions/util.ResponseError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/swagger.ResponseInternalServerError'
+            $ref: '#/definitions/util.ResponseError'
       summary: Login a user
       tags:
       - auth
@@ -184,17 +142,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: User logout successfully
           schema:
-            $ref: '#/definitions/swagger.ResponseUserLoggedOut'
+            $ref: '#/definitions/api.SuccessResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/swagger.ResponseUnauthorized'
+            $ref: '#/definitions/util.ResponseError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/swagger.ResponseInternalServerError'
+            $ref: '#/definitions/util.ResponseError'
       security:
       - Token: []
       summary: Logout a user
@@ -218,15 +176,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/swagger.ResponseUserRegistered'
+            $ref: '#/definitions/api.SuccessResponse'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/swagger.ResponseBadRequest'
+            $ref: '#/definitions/util.ResponseError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/swagger.ResponseInternalServerError'
+            $ref: '#/definitions/util.ResponseError'
       summary: Register a new user
       tags:
       - auth
@@ -237,11 +195,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/swagger.ResponseTokenVerified'
+            $ref: '#/definitions/api.SuccessResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/swagger.ResponseUnauthorized'
+            $ref: '#/definitions/util.ResponseError'
       security:
       - Token: []
       summary: Verify token
@@ -267,21 +225,21 @@ paths:
           schema:
             $ref: '#/definitions/util.APINote'
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/swagger.ResponseBadRequest'
+            $ref: '#/definitions/util.ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/swagger.ResponseUnauthorized'
+            $ref: '#/definitions/util.ResponseError'
         "404":
-          description: Not Found
+          description: Not found
           schema:
-            $ref: '#/definitions/swagger.ResponseNotFound'
+            $ref: '#/definitions/util.ResponseError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/swagger.ResponseInternalServerError'
+            $ref: '#/definitions/util.ResponseError'
       security:
       - Token: []
       summary: Create a note
@@ -304,15 +262,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/swagger.ResponseNoteRetrievedRestricted'
+            $ref: '#/definitions/util.APINote'
         "404":
-          description: Not Found
+          description: Not found
           schema:
-            $ref: '#/definitions/swagger.ResponseNotFound'
+            $ref: '#/definitions/util.ResponseError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/swagger.ResponseInternalServerError'
+            $ref: '#/definitions/util.ResponseError'
       summary: Get a note by ID
       tags:
       - notes
@@ -331,15 +289,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/swagger.ResponseUnauthorized'
+            $ref: '#/definitions/util.ResponseError'
         "404":
-          description: Not Found
+          description: Not found
           schema:
-            $ref: '#/definitions/swagger.ResponseNotFound'
+            $ref: '#/definitions/util.ResponseError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/swagger.ResponseInternalServerError'
+            $ref: '#/definitions/util.ResponseError'
       security:
       - Token: []
       summary: Get notes by user ID

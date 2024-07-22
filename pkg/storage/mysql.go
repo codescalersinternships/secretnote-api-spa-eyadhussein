@@ -11,14 +11,45 @@ import (
 	"gorm.io/gorm"
 )
 
+// Config is a configuration for the MySQL storage
+type Config struct {
+	username string
+	password string
+	host     string
+	port     string
+	dbName   string
+}
+
+// NewConfig creates a new MySQL storage configuration
+func NewConfig(username, password, host, port, dbName string) *Config {
+	return &Config{
+		username: username,
+		password: password,
+		host:     host,
+		port:     port,
+		dbName:   dbName,
+	}
+}
+
+func (c *Config) generateDatasource(includeName bool) string {
+	if includeName {
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", c.username, c.password, c.host, c.port, c.dbName)
+	} else {
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/", c.username, c.password, c.host, c.port)
+	}
+}
+
 // MySQL is a storage implementation that uses MySQL
 type MySQL struct {
-	db *gorm.DB
+	db     *gorm.DB
+	config *Config
 }
 
 // NewMySQL creates a new MySQL storage
-func NewMySQL() *MySQL {
-	return &MySQL{}
+func NewMySQL(config *Config) *MySQL {
+	return &MySQL{
+		config: config,
+	}
 }
 
 // Init initializes the MySQL storage
@@ -127,12 +158,12 @@ func (m *MySQL) DeleteNoteByID(id string) error {
 // Clear clears the database
 func (m *MySQL) Clear() error {
 	tx := m.db.Begin()
-	tx.Exec("DROP DATABASE " + os.Getenv("DB_NAME"))
+	tx.Exec("DROP DATABASE " + m.config.dbName)
 	if tx.Error != nil {
 		tx.Rollback()
 		return tx.Error
 	}
-	tx.Exec("CREATE DATABASE " + os.Getenv("DB_NAME"))
+	tx.Exec("CREATE DATABASE " + m.config.dbName)
 	if tx.Error != nil {
 		tx.Rollback()
 		return tx.Error
@@ -146,7 +177,7 @@ func (m *MySQL) connect() error {
 	if err != nil {
 		return err
 	}
-	db, err := gorm.Open(mysql.Open(generateDatasourceName()), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(m.config.generateDatasource(true)), &gorm.Config{})
 	if err != nil {
 		return err
 	}
@@ -161,7 +192,7 @@ func (m *MySQL) ensureDatabaseExists() error {
 	var sqlStatement = `
 		CREATE DATABASE IF NOT EXISTS %s;
 	`
-	dsn := generateDatasourceNameWithoutDB()
+	dsn := m.config.generateDatasource(false)
 
 	sqlDB, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -174,24 +205,6 @@ func (m *MySQL) ensureDatabaseExists() error {
 		return err
 	}
 	return nil
-}
-
-func generateDatasourceName() string {
-	username := os.Getenv("DB_USERNAME")
-	password := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, port, dbName)
-}
-
-func generateDatasourceNameWithoutDB() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/",
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"))
 }
 
 func (m *MySQL) migrate() error {

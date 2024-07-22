@@ -1,3 +1,4 @@
+// Package util contains utility functions used in the server.
 package util
 
 import (
