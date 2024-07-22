@@ -1,0 +1,25 @@
+FROM golang:1.22 AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY ./cmd ./cmd
+COPY ./pkg ./pkg
+COPY ./docs ./docs
+COPY ./.env ./.env
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd
+
+
+FROM scratch AS serverimg
+
+WORKDIR /
+
+COPY --from=builder /app/main .
+
+EXPOSE 5000
+
+CMD ["./main"]

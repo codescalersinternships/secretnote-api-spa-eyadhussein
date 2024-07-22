@@ -1,0 +1,47 @@
+version: '3'
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: always
+    container_name: server
+    image: serverimg
+    ports:
+      - '5000:5000'
+    environment:
+      - DB_HOST=$DB_HOST
+      - DB_PORT=$DB_PORT
+      - DB_USER=$DB_USER
+      - DB_PASS=$DB_PASS
+      - DB_NAME=$DB_NAME
+    depends_on:
+      - db
+
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.frontend
+  #   restart: always
+  #   container_name: web
+  #   ports:
+  #     - '8080:80'
+  #   depends_on:
+  #     - server
+
+  db:
+    image: mysql:latest
+    ports:
+      - 3366:3306
+    container_name: db
+    environment:
+      MYSQL_USER: $DB_USER
+      MYSQL_PASSWORD: $DB_PASS
+      MYSQL_ROOT_PASSWORD: $DB_PASS
+      MYSQL_DATABASE: $DB_NAME
+
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

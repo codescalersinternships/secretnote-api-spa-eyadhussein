@@ -1,0 +1,311 @@
+basePath: /api
+definitions:
+  api.SuccessResponse:
+    description: User registered successfully
+    properties:
+      message:
+        type: string
+    type: object
+  models.CreateNoteRequest:
+    properties:
+      content:
+        type: string
+      expires_at:
+        type: string
+      max_views:
+        type: integer
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - expires_at
+    - max_views
+    - title
+    type: object
+  models.LoginUserRequest:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.RegisterUserRequest:
+    description: RegisterUserRequest represents a request to register a user
+    properties:
+      email:
+        description: |-
+          @Description The email address of the user
+          @Example johndoe@example.com
+        type: string
+      password:
+        description: |-
+          @Description The password for the user
+          @Example P@ssw0rd!
+        minLength: 8
+        type: string
+      password_confirmation:
+        description: |-
+          @Description Confirmation of the password
+          @Example P@ssw0rd!
+        type: string
+      username:
+        description: |-
+          @Description The username of the user
+          @Example johndoe
+        type: string
+    required:
+    - email
+    - password
+    - password_confirmation
+    - username
+    type: object
+  util.APINote:
+    properties:
+      content:
+        type: string
+      current_views:
+        type: integer
+      expires_at:
+        type: string
+      id:
+        type: string
+      max_views:
+        type: integer
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  util.ResponseError:
+    description: General error response
+    properties:
+      message:
+        example: An error occurred
+        type: string
+      status:
+        example: 500
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: This is a sample server for managing notes.
+  title: Secret Note API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user
+      parameters:
+      - description: User credentials to login
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User login successfully
+          schema:
+            $ref: '#/definitions/api.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      summary: Login a user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Logout a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User logout successfully
+          schema:
+            $ref: '#/definitions/api.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      security:
+      - Token: []
+      summary: Logout a user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with username, email, and password
+      parameters:
+      - description: User credentials to register
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      summary: Register a new user
+      tags:
+      - auth
+  /auth/verify-token:
+    post:
+      description: Verify token
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      security:
+      - Token: []
+      summary: Verify token
+      tags:
+      - auth
+  /notes:
+    post:
+      consumes:
+      - application/json
+      description: Create a note with title, content, max views, and expiration date
+      parameters:
+      - description: Note details to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/util.APINote'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      security:
+      - Token: []
+      summary: Create a note
+      tags:
+      - notes
+  /notes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a note by ID
+      parameters:
+      - description: Note ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.APINote'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      summary: Get a note by ID
+      tags:
+      - notes
+  /users/notes:
+    get:
+      description: Get notes by user ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/util.APINote'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/util.ResponseError'
+      security:
+      - Token: []
+      summary: Get notes by user ID
+      tags:
+      - notes
+securityDefinitions:
+  Token:
+    in: cookie
+    name: token
+    type: apiKey
+swagger: "2.0"
